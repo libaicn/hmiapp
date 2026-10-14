@@ -1,0 +1,52 @@
+name: windows_msvc
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'doc/**'
+      - 'docs/**'
+      - 'README.md'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE/**'
+    tags:
+      - V**
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - 'doc/**'
+      - 'docs/**'
+      - 'README.md'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE/**'
+  workflow_dispatch:
+
+jobs:
+  windows_msvc2019:
+    runs-on: windows-2022
+
+    steps:
+      - uses: actions/checkout@v7
+    
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          arch: 'win64_msvc2022_64'
+          version: '6.9.3'
+          modules: 'qtmultimedia'
+          aqtversion: '==3.3.0'
+
+      - name: Setup cmake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.20.0'
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+    
+      - name: Build all
+        run: |
+          qmake template.pro -tp vc
+          msbuild template.vcxproj /p:Configuration=Release /p:Platform=x64 /p:BuildInParallel=false
